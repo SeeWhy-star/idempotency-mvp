@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>3.5.16</version>
         <relativePath/>
     </parent>
 
@@ -34,7 +34,7 @@
     </scm>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>25</java.version>
         <redisson.version>3.23.5</redisson.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
     </properties>

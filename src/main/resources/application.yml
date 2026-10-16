@@ -14,10 +14,11 @@ spring:
   sql:
     init:
       mode: always
-  redis:
-    host: localhost
-    port: 6380
-    timeout: 2s
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      timeout: 2s
 
 app:
   idempotency:

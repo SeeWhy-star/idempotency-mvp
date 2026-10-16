@@ -1,8 +1,8 @@
 package com.example.idempotencymvp.controller;
 
 import com.example.idempotencymvp.domain.PaymentIntentStatus;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class PaymentCallbackRequest {
 
