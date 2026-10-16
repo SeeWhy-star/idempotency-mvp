@@ -1,0 +1,28 @@
+server:
+  port: 18080
+
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/idempotency-mvp;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      mode: always
+  redis:
+    host: localhost
+    port: 6380
+    timeout: 2s
+
+app:
+  idempotency:
+    store: redis
+    processing-ttl: 30s
+    completed-ttl: 24h
+  redisson:
+    enabled: true
