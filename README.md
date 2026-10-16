@@ -19,15 +19,16 @@ This project demonstrates idempotency, not exactly-once delivery. Idempotency ma
 
 ## Technology
 
-- Java 8
-- Spring Boot 2.7.18
-- Maven
+- Java 25 LTS
+- Spring Boot 4.1.1 and Spring Framework 7
+- Maven 3.9.16 through the checked-in wrapper
 - Spring AOP
 - Spring Data Redis
-- Redisson
+- Redisson 4.8.0
 - H2
 - JUnit 5 and Mockito
-- Redis 7.2 through Docker Compose
+- Jackson 3 and Jakarta EE APIs
+- Redis 8.10.2 through Docker Compose
 
 The application listens on port `18080`. Redis is expected at `localhost:6380`. Every Redis key created by the application starts with `idempotency:mvp:`.
 
@@ -87,7 +88,7 @@ The Redis hash stores at least:
 - `responseBody`
 - `createdAt`
 
-The request body is serialized canonically and hashed with SHA-256. Reusing the same idempotency key with different parameters returns HTTP 409 rather than replaying an unrelated result.
+The request body is serialized canonically and hashed with SHA-256. Object properties are sorted recursively, while array order remains significant, so the fingerprint is stable across harmless JSON object field reordering. Reusing the same idempotency key with different parameters returns HTTP 409 rather than replaying an unrelated result.
 
 ### State transitions
 
@@ -227,11 +228,11 @@ The database unique constraint, lookup of an existing payment intent, and stable
 
 ### Requirements
 
-- Java 8 or newer, with source and target compatibility set to Java 8
+- Java 25
 - Docker with Compose for Redis
 - `curl` for the demonstration script
 
-The included Maven wrapper bootstraps Maven 3.9.9 from Maven Central and verifies its SHA-256 checksum.
+The included Maven wrapper bootstraps Maven 3.9.16 from Maven Central and verifies its SHA-256 checksum on Linux, macOS, and Windows.
 
 ### Start
 
@@ -241,6 +242,8 @@ docker compose up -d
 ```
 
 The API is available at `http://localhost:18080`. H2 data is stored under `./data/`.
+
+If this checkout was previously run with the Java 8 / Spring Boot 2 generation, its ignored local H2 database may use an older on-disk format that the current H2 version cannot open. Back up and migrate any data that matters. For disposable demo data only, stop the application and remove the local `data/` directory so the schema can be recreated. The upgrade does not delete this directory automatically.
 
 ### Stop Redis
 
@@ -281,7 +284,19 @@ docker compose up -d
 RUN_REDIS_TESTS=true ./mvnw -Dtest=RedisIdempotencyStoreIntegrationTest test
 ```
 
-GitHub Actions runs the complete suite, including the Redis integration test, against a Redis 7.2 service container.
+GitHub Actions runs the complete suite on Temurin Java 25, including the Redis integration test against a Redis 8.10.2 service container.
+
+## Upgrade notes
+
+The modernization was intentionally validated in two major steps instead of changing every compatibility boundary at once:
+
+| Stage | Runtime and framework | Acceptance result |
+| --- | --- | --- |
+| Original baseline | Java 8, Spring Boot 2.7.18 | Existing behavior captured before migration |
+| Compatibility bridge | Java 25, Spring Boot 3.5.16 | Clean compile, Checkstyle, package, 15 tests passed, 1 optional Redis test skipped locally, and create/replay HTTP smoke test passed |
+| Current stack | Java 25, Spring Boot 4.1.1 | Clean compile, Checkstyle, executable JAR package, 17 tests passed, 1 optional Redis test skipped locally, and create/replay/conflict/duplicate-callback HTTP smoke tests passed |
+
+The first stage performed the `javax.*` to `jakarta.*` migration and adopted the current Spring Data Redis property namespace. The second stage adopted Spring Boot 4's focused starters and test modules, Jackson 3 package names, Java records for API DTOs, current Redisson, Redis, and Maven versions, and explicit recursive request canonicalization tests. The GitHub Actions build performs the Redis-backed test that cannot run on a machine without Docker or a local Redis instance.
 
 ## Curl examples
 

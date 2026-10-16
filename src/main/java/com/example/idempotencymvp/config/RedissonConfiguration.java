@@ -15,8 +15,8 @@ public class RedissonConfiguration {
 
     @Bean(destroyMethod = "shutdown")
     public RedissonClient redissonClient(
-            @Value("${spring.redis.host:localhost}") String host,
-            @Value("${spring.redis.port:6380}") int port) {
+            @Value("${spring.data.redis.host:localhost}") String host,
+            @Value("${spring.data.redis.port:6380}") int port) {
         Config config = new Config();
         config.useSingleServer().setAddress("redis://" + host + ":" + port);
         return Redisson.create(config);

@@ -13,7 +13,7 @@ spring:
 app:
   idempotency:
     store: memory
-    processing-ttl: 200ms
+    processing-ttl: 30s
     completed-ttl: 24h
   redisson:
     enabled: false

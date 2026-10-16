@@ -11,11 +11,11 @@ import com.example.idempotencymvp.service.PaymentCallbackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -38,7 +38,7 @@ class PaymentIntentIdempotencyIntegrationTest {
     @Autowired
     private FakeChannelClient channelClient;
 
-    @MockBean
+    @MockitoBean
     private PaymentCallbackService paymentCallbackService;
 
     @BeforeEach

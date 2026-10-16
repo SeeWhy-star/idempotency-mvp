@@ -12,7 +12,7 @@ import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -40,9 +40,8 @@ class PaymentIntentTransitionServiceTest {
                 "USD",
                 PaymentIntentStatus.PROCESSING,
                 Instant.parse("2026-01-01T00:00:00Z")));
-        callback = new PaymentCallbackRequest();
-        callback.setChannelTransactionId("channel-transaction-1");
-        callback.setStatus(PaymentIntentStatus.SUCCEEDED);
+        callback = new PaymentCallbackRequest(
+                "channel-transaction-1", PaymentIntentStatus.SUCCEEDED);
     }
 
     @Test
@@ -50,10 +49,10 @@ class PaymentIntentTransitionServiceTest {
         PaymentCallbackResponse first = service.transition("pi-callback-1", callback);
         PaymentCallbackResponse duplicate = service.transition("pi-callback-1", callback);
 
-        assertThat(first.isAccepted()).isTrue();
-        assertThat(first.isTransitioned()).isTrue();
-        assertThat(duplicate.isAccepted()).isTrue();
-        assertThat(duplicate.isTransitioned()).isFalse();
+        assertThat(first.accepted()).isTrue();
+        assertThat(first.transitioned()).isTrue();
+        assertThat(duplicate.accepted()).isTrue();
+        assertThat(duplicate.transitioned()).isFalse();
         assertThat(repository.findById("pi-callback-1").orElseThrow(AssertionError::new)
                 .getStatus()).isEqualTo(PaymentIntentStatus.SUCCEEDED);
     }
