@@ -29,7 +29,7 @@ public class PaymentIntentService {
     public CreatePaymentIntentResponse create(
             String accountId, CreatePaymentIntentRequest request) {
         return repository.findByAccountIdAndMerchantOrderNo(
-                        accountId, request.getMerchantOrderNo())
+                        accountId, request.merchantOrderNo())
                 .map(this::toResponse)
                 .orElseGet(() -> createNew(accountId, request));
     }
@@ -48,15 +48,15 @@ public class PaymentIntentService {
         PaymentIntent paymentIntent = new PaymentIntent(
                 UUID.randomUUID().toString(),
                 accountId,
-                request.getMerchantOrderNo(),
-                request.getAmount(),
-                request.getCurrency().toUpperCase(),
+                request.merchantOrderNo(),
+                request.amount(),
+                request.currency().toUpperCase(),
                 PaymentIntentStatus.PROCESSING,
                 now);
         repository.saveAndFlush(paymentIntent);
 
         ChannelPaymentResult channelResult = channelSubmissionService.submit(paymentIntent);
-        paymentIntent.setChannelTransactionId(channelResult.getChannelTransactionId());
+        paymentIntent.setChannelTransactionId(channelResult.channelTransactionId());
         repository.save(paymentIntent);
         return toResponse(paymentIntent);
     }

@@ -21,7 +21,7 @@ public class PaymentIntentTransitionService {
     @Transactional
     public PaymentCallbackResponse transition(
             String paymentIntentId, PaymentCallbackRequest request) {
-        validateTargetStatus(request.getStatus());
+        validateTargetStatus(request.status());
 
         // 锁只能串行化协作方；拿锁后重查，才能看到等待期间其他节点提交的最新状态。
         PaymentIntent current = repository.findById(paymentIntentId)
@@ -30,11 +30,11 @@ public class PaymentIntentTransitionService {
 
         int affectedRows = repository.transitionFromPending(
                 paymentIntentId,
-                request.getStatus().name(),
-                request.getChannelTransactionId());
+                request.status().name(),
+                request.channelTransactionId());
         if (affectedRows == 1) {
             return new PaymentCallbackResponse(
-                    true, true, paymentIntentId, request.getStatus());
+                    true, true, paymentIntentId, request.status());
         }
 
         // affectedRows == 0 代表重复回调或非法迁移；不再执行任何副作用，但向渠道返回成功。

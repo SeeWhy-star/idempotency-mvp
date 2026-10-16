@@ -2,13 +2,13 @@ package com.example.idempotencymvp.idempotency;
 
 import com.example.idempotencymvp.exception.IdempotencyConflictException;
 import com.example.idempotencymvp.exception.IdempotencyInfrastructureException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class IdempotencyService {
@@ -66,7 +66,7 @@ public class IdempotencyService {
         String responseJson;
         try {
             responseJson = objectMapper.writeValueAsString(response.getBody());
-        } catch (JsonProcessingException serializationFailure) {
+        } catch (JacksonException serializationFailure) {
             safeAbort(context);
             throw new IdempotencyInfrastructureException(
                     "Unable to serialize idempotent response", serializationFailure);
@@ -78,7 +78,7 @@ public class IdempotencyService {
                     context.getRedisKey(),
                     context.getFingerprint(),
                     context.getOwnerToken(),
-                    response.getStatusCodeValue(),
+                    response.getStatusCode().value(),
                     responseJson);
         } catch (RuntimeException storeFailure) {
             throw new IdempotencyInfrastructureException(
@@ -97,7 +97,7 @@ public class IdempotencyService {
             return ResponseEntity.status(record.getHttpStatus())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(record.getResponseBody());
-        } catch (JsonProcessingException invalidCache) {
+        } catch (JacksonException invalidCache) {
             throw new IdempotencyInfrastructureException(
                     "Cached idempotency response is invalid", invalidCache);
         }

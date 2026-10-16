@@ -5,7 +5,15 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Component
 public class IdempotencyKeyFactory {
@@ -18,19 +26,34 @@ public class IdempotencyKeyFactory {
         return PREFIX + "request:" + sha256(scope);
     }
 
-    public String fingerprint(Object requestBody, com.fasterxml.jackson.databind.ObjectMapper mapper) {
+    public String fingerprint(Object requestBody, ObjectMapper mapper) {
         try {
-            com.fasterxml.jackson.databind.ObjectMapper canonicalMapper = mapper.copy();
-            canonicalMapper.configure(
-                    com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY,
-                    true);
-            canonicalMapper.configure(
-                    com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,
-                    true);
-            return sha256(canonicalMapper.writeValueAsString(requestBody));
-        } catch (com.fasterxml.jackson.core.JsonProcessingException failure) {
+            JsonNode canonicalBody = canonicalize(mapper.valueToTree(requestBody), mapper);
+            return sha256(mapper.writeValueAsString(canonicalBody));
+        } catch (JacksonException failure) {
             throw new IllegalArgumentException("Unable to fingerprint request", failure);
         }
+    }
+
+    private JsonNode canonicalize(JsonNode node, ObjectMapper mapper) {
+        if (node.isObject()) {
+            ObjectNode source = (ObjectNode) node;
+            ObjectNode canonical = mapper.createObjectNode();
+            List<String> names = new ArrayList<>(source.propertyNames());
+            Collections.sort(names);
+            for (String name : names) {
+                canonical.set(name, canonicalize(source.get(name), mapper));
+            }
+            return canonical;
+        }
+        if (node.isArray()) {
+            ArrayNode canonical = mapper.createArrayNode();
+            for (JsonNode element : node) {
+                canonical.add(canonicalize(element, mapper));
+            }
+            return canonical;
+        }
+        return node;
     }
 
     private String normalizeUri(String uri) {
