@@ -36,7 +36,7 @@
     <properties>
         <java.version>8</java.version>
         <redisson.version>3.23.5</redisson.version>
-        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     </properties>
 
     <dependencies>
